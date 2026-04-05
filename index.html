@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spritpreise">
+<title>Spritpreise</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c26;
+  --border: #2a2a3a;
+  --e5: #f5a623;
+  --e10: #4ade80;
+  --diesel: #60a5fa;
+  --text: #efefef;
+  --muted: #5a5a70;
+  --red: #f87171;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100dvh; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
+body { padding: calc(var(--safe-top) + 1.25rem) 1rem calc(var(--safe-bottom) + 1.25rem); display: flex; flex-direction: column; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.app { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; max-width: 460px; margin: 0 auto; width: 100%; }
+
+/* Setup */
+.setup { flex: 1; display: flex; align-items: center; justify-content: center; }
+.setup-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; width: 100%; }
+.setup-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.04em; color: var(--e10); margin-bottom: 0.15rem; }
+.setup-sub { font-size: 0.7rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 1.75rem; line-height: 1.6; }
+.setup-label { display: block; font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+.setup-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--text); outline: none; transition: border-color 0.2s; margin-bottom: 0.4rem; -webkit-appearance: none; }
+.setup-input:focus { border-color: var(--e10); }
+.setup-hint { font-size: 0.63rem; color: #3a3a50; font-family: 'DM Mono', monospace; margin-bottom: 1.25rem; line-height: 1.6; }
+.setup-btn { width: 100%; padding: 0.9rem; background: #162816; border: 1px solid #2a4a2a; border-radius: 12px; font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--e10); cursor: pointer; transition: all 0.2s; }
+.setup-btn:active { transform: scale(0.98); opacity: 0.85; }
+
+/* Dashboard */
+#dash { display: none; flex-direction: column; flex: 1; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+.title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 0.04em; line-height: 1; }
+.meta { font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 0.2rem; }
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; padding-top: 4px; }
+.live-pill { display: flex; align-items: center; gap: 0.3rem; background: #162816; border: 1px solid #2a4a2a; border-radius: 100px; padding: 0.28rem 0.65rem; font-size: 0.62rem; font-family: 'DM Mono', monospace; color: var(--e10); }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--e10); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.35; transform:scale(.75); } }
+.refresh-btn { display: flex; align-items: center; gap: 0.3rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 0.28rem 0.65rem; font-size: 0.62rem; font-family: 'DM Mono', monospace; color: var(--muted); cursor: pointer; transition: all 0.15s; -webkit-appearance: none; }
+.refresh-btn:active { transform: scale(0.93); }
+.refresh-btn.spin svg { animation: rotate 0.7s linear infinite; }
+@keyframes rotate { to { transform: rotate(360deg); } }
+.progress { height: 2px; background: var(--surface2); border-radius: 2px; margin-bottom: 0.85rem; overflow: hidden; }
+.progress-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--e10), var(--e5)); border-radius: 2px; transition: width 1s linear; }
+.error-bar { display: none; background: #2a1515; border: 1px solid #4a2525; border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.85rem; font-size: 0.7rem; font-family: 'DM Mono', monospace; color: var(--red); }
+.error-bar.show { display: block; }
+
+/* Cards */
+.cards { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 0.65rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1rem 1.1rem 0.95rem; position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.card.esso::before { background: linear-gradient(90deg, var(--e5), #f87171); }
+.card.ran::before  { background: linear-gradient(90deg, var(--e10), var(--diesel)); }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.8rem; }
+.card-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; letter-spacing: 0.05em; line-height: 1; }
+.esso .card-name { color: var(--e5); }
+.ran  .card-name { color: var(--e10); }
+.card-addr { font-size: 0.64rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 0.18rem; }
+.pill { font-size: 0.6rem; font-family: 'DM Mono', monospace; padding: 0.15rem 0.45rem; border-radius: 100px; }
+.pill-open   { background: #162816; border: 1px solid #2a4a2a; color: var(--e10); }
+.pill-closed { background: #2a1515; border: 1px solid #4a2525; color: var(--red); }
+.prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; }
+.price-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem 0.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.05rem; }
+.price-label { font-size: 0.6rem; font-family: 'DM Mono', monospace; color: var(--muted); }
+.price-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.02em; line-height: 1; transition: opacity 0.25s; }
+.price-val.loading { opacity: 0.25; }
+.price-unit { font-size: 0.56rem; font-family: 'DM Mono', monospace; color: var(--muted); }
+
+/* Compare */
+.compare { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 0.9rem 1.1rem; margin-bottom: 0.65rem; }
+.compare-title { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.8rem; }
+.comp-row { display: grid; grid-template-columns: 32px 1fr 76px; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
+.comp-label { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.04em; text-align: center; }
+.comp-bar { height: 4px; background: var(--surface2); border-radius: 100px; position: relative; }
+.comp-bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 100px; width: 100%; }
+.comp-dot { position: absolute; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--bg); }
+.comp-diff { font-family: 'DM Mono', monospace; font-size: 0.62rem; padding: 0.1rem 0.35rem; border-radius: 5px; text-align: center; white-space: nowrap; }
+.diff-good { background: #162816; color: var(--e10); border: 1px solid #2a4a2a; }
+.diff-bad  { background: #2a1515; color: var(--red); border: 1px solid #4a2525; }
+.diff-same { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.comp-winner { margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid var(--border); font-size: 0.65rem; font-family: 'DM Mono', monospace; color: var(--muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+
+footer { margin-top: auto; text-align: center; font-size: 0.6rem; color: var(--muted); font-family: 'DM Mono', monospace; line-height: 1.8; padding-top: 0.5rem; }
+.logout-btn { background: none; border: none; color: #333344; font-family: 'DM Mono', monospace; font-size: 0.6rem; cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="setup" id="setupScreen">
+    <div class="setup-box">
+      <div class="setup-logo">Spritpreise</div>
+      <div class="setup-sub">ESSO Uettingen · RAN Heidingsfeld<br>Direktanbindung via TankerKönig</div>
+      <label class="setup-label">TankerKönig API-Key</label>
+      <input class="setup-input" type="text" id="apiKeyInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      <div class="setup-hint">Key anfordern auf creativecommons.tankerkoenig.de<br>Wird nur lokal auf deinem Gerät gespeichert.</div>
+      <button class="setup-btn" onclick="startDashboard()">Dashboard starten →</button>
+    </div>
+  </div>
+
+  <div id="dash">
+    <div class="header">
+      <div>
+        <div class="title">Spritpreise</div>
+        <div class="meta" id="lastUpdated">Wird geladen…</div>
+      </div>
+      <div class="header-right">
+        <div class="live-pill"><span class="live-dot"></span>LIVE</div>
+        <button class="refresh-btn" id="refreshBtn" onclick="fetchPrices()">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          Aktualisieren
+        </button>
+      </div>
+    </div>
+
+    <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="error-bar" id="errorBar"></div>
+
+    <div class="cards">
+      <div class="card esso">
+        <div class="card-top">
+          <div><div class="card-name">ESSO</div><div class="card-addr">Würzburger Str. 21a · Uettingen</div></div>
+          <div class="pill pill-open" id="esso-status">–</div>
+        </div>
+        <div class="prices">
+          <div class="price-cell"><span class="price-label">E5</span><span class="price-val loading" id="esso-e5" style="color:var(--e5)">–.–––</span><span class="price-unit">€/L</span></div>
+          <div class="price-cell"><span class="price-label">E10</span><span class="price-val loading" id="esso-e10" style="color:var(--e10)">–.–––</span><span class="price-unit">€/L</span></div>
+          <div class="price-cell"><span class="price-label">Diesel</span><span class="price-val loading" id="esso-diesel" style="color:var(--diesel)">–.–––</span><span class="price-unit">€/L</span></div>
+        </div>
+      </div>
+      <div class="card ran">
+        <div class="card-top">
+          <div><div class="card-name">RAN</div><div class="card-addr">Stuttgarter Str. 21 · Heidingsfeld</div></div>
+          <div class="pill pill-open" id="ran-status">–</div>
+        </div>
+        <div class="prices">
+          <div class="price-cell"><span class="price-label">E5</span><span class="price-val loading" id="ran-e5" style="color:var(--e5)">–.–––</span><span class="price-unit">€/L</span></div>
+          <div class="price-cell"><span class="price-label">E10</span><span class="price-val loading" id="ran-e10" style="color:var(--e10)">–.–––</span><span class="price-unit">€/L</span></div>
+          <div class="price-cell"><span class="price-label">Diesel</span><span class="price-val loading" id="ran-diesel" style="color:var(--diesel)">–.–––</span><span class="price-unit">€/L</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare">
+      <div class="compare-title">— ESSO vs. RAN —</div>
+      <div id="compareContent"><div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);text-align:center;padding:0.5rem 0">Lädt…</div></div>
+    </div>
+
+    <footer>
+      MTS-K via TankerKönig · Alle 5 Min. aktualisiert<br>
+      Angaben ohne Gewähr – Preis vor Ort prüfen<br>
+      <button class="logout-btn" onclick="logout()">API-Key ändern</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+const ESSO_ID = '9ffaff57-ea6e-44d3-8d39-47bab8253317';
+const RAN_ID  = 'd54b3753-93f3-44e7-bb6b-ded140f8326f';
+const REFRESH = 300;
+const CKEY    = 'sprit_prices_v2';
+
+let apiKey = '', countdown = REFRESH, timer = null;
+
+// Alle alten Service Worker killen
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+}
+
+// Auto-Refresh wenn App sichtbar wird
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && apiKey) fetchPrices();
+});
+
+function loadKey()    { try { return localStorage.getItem('tk_key') || ''; } catch { return ''; } }
+function saveKey(k)   { try { localStorage.setItem('tk_key', k); } catch {} }
+function getCached()  { try { const v = localStorage.getItem(CKEY); return v ? JSON.parse(v) : null; } catch { return null; } }
+function setCached(d) { try { localStorage.setItem(CKEY, JSON.stringify({...d, at: Date.now()})); } catch {} }
+
+function logout() {
+  try { localStorage.removeItem('tk_key'); } catch {}
+  clearInterval(timer); apiKey = '';
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('setupScreen').style.display = 'flex';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  apiKey = loadKey();
+  if (apiKey) showDash();
+});
+
+function startDashboard() {
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (!v || v.length < 30) { alert('Bitte einen gültigen API-Key eingeben.'); return; }
+  apiKey = v; saveKey(apiKey); showDash();
+}
+
+function showDash() {
+  document.getElementById('setupScreen').style.display = 'none';
+  const d = document.getElementById('dash');
+  d.style.display = 'flex'; d.style.flexDirection = 'column';
+  const cached = getCached();
+  if (cached) renderPrices(cached, true);
+  fetchPrices();
+}
+
+async function fetchPrices() {
+  const btn = document.getElementById('refreshBtn');
+  const err = document.getElementById('errorBar');
+  btn.classList.add('spin'); btn.disabled = true;
+  err.classList.remove('show');
+  document.querySelectorAll('.price-val').forEach(el => el.classList.add('loading'));
+  clearInterval(timer);
+
+  try {
+    const url = `https://creativecommons.tankerkoenig.de/json/prices.php?ids=${ESSO_ID},${RAN_ID}&apikey=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.message || 'API Fehler');
+    const result = { esso: data.prices[ESSO_ID], ran: data.prices[RAN_ID] };
+    setCached(result); renderPrices(result, false); startCountdown();
+  } catch(e) {
+    let msg = e.message;
+    if (msg.includes('403') || msg.includes('401')) msg = 'API-Key ungültig.';
+    if (!navigator.onLine) msg = 'Kein Internet – letzte Preise werden angezeigt.';
+    err.textContent = '⚠ ' + msg; err.classList.add('show');
+    const cached = getCached();
+    if (cached) renderPrices(cached, true);
+    startCountdown();
+  } finally {
+    btn.classList.remove('spin'); btn.disabled = false;
+    document.querySelectorAll('.price-val').forEach(el => el.classList.remove('loading'));
+  }
+}
+
+function fmt(v) { return (v === false || v == null) ? 'k.A.' : Number(v).toFixed(3); }
+
+function renderPrices(p, fromCache) {
+  const e = p.esso, r = p.ran;
+  setVal('esso-e5', fmt(e?.e5)); setVal('esso-e10', fmt(e?.e10)); setVal('esso-diesel', fmt(e?.diesel));
+  setVal('ran-e5',  fmt(r?.e5)); setVal('ran-e10',  fmt(r?.e10)); setVal('ran-diesel',  fmt(r?.diesel));
+  setStatus('esso-status', e?.status); setStatus('ran-status', r?.status);
+  const t = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('lastUpdated').textContent =
+    fromCache && p.at
+      ? `Cache · ${new Date(p.at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`
+      : `Stand: ${t} Uhr · TankerKönig`;
+  renderCompare(e, r);
+}
+
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function setStatus(id, status) {
+  const el = document.getElementById(id); if (!el) return;
+  if (status === 'open')   { el.textContent = 'Geöffnet';    el.className = 'pill pill-open'; }
+  if (status === 'closed') { el.textContent = 'Geschlossen'; el.className = 'pill pill-closed'; }
+}
+
+function renderCompare(e, r) {
+  const fuels = [{key:'e5',label:'E5',color:'var(--e5)'},{key:'e10',label:'E10',color:'var(--e10)'},{key:'diesel',label:'DSL',color:'var(--diesel)'}];
+  let html = '', essoW = 0, ranW = 0;
+  fuels.forEach(f => {
+    const ev = e?.[f.key], rv = r?.[f.key];
+    if (!ev || !rv || ev === false || rv === false) return;
+    const diff = Math.abs(ev - rv).toFixed(3);
+    const same = parseFloat(diff) < 0.002, essoLower = ev < rv;
+    let cls, txt;
+    if (same) { cls='diff-same'; txt='gleich'; }
+    else if (essoLower) { cls='diff-good'; txt=`ESSO −${diff}€`; essoW++; }
+    else { cls='diff-bad'; txt=`RAN −${diff}€`; ranW++; }
+    const lp = essoLower ? '0% - 4px' : '100% - 4px';
+    const rp = essoLower ? '100% - 4px' : '0% - 4px';
+    html += `<div class="comp-row">
+      <div class="comp-label" style="color:${f.color}">${f.label}</div>
+      <div class="comp-bar">
+        <div class="comp-bar-fill" style="background:linear-gradient(90deg,${f.color}55,${f.color}15)"></div>
+        <div class="comp-dot" style="left:calc(${lp});background:${f.color}"></div>
+        <div class="comp-dot" style="left:calc(${rp});background:var(--red);opacity:0.4"></div>
+      </div>
+      <div class="comp-diff ${cls}">${txt}</div>
+    </div>`;
+  });
+  const wc = essoW >= ranW ? 'var(--e5)' : 'var(--e10)';
+  const wt = essoW > ranW ? 'ESSO günstiger' : ranW > essoW ? 'RAN günstiger' : 'Gleiche Preise';
+  const e5d = (e?.e5 && r?.e5 && e.e5!==false && r.e5!==false) ? Math.abs(e.e5-r.e5) : 0;
+  html += `<div class="comp-winner"><span><span style="color:${wc}">●</span> ${wt}</span>${e5d>0.001?`<span>40L E5: ca. <span style="color:${wc}">${(e5d*40).toFixed(2)} €</span> Diff.</span>`:''}</div>`;
+  document.getElementById('compareContent').innerHTML = html;
+}
+
+function startCountdown() {
+  countdown = REFRESH; clearInterval(timer);
+  const fill = document.getElementById('progressFill');
+  timer = setInterval(() => {
+    countdown--;
+    fill.style.width = `${(countdown/REFRESH)*100}%`;
+    if (countdown <= 0) { clearInterval(timer); fetchPrices(); }
+  }, 1000);
+}
+</script>
+</body>
+</html>
